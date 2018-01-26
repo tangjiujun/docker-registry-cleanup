@@ -1,22 +1,22 @@
 #!/bin/bash
 
-# Verify registry config.yml
-: ${REGISTRY_CONFIG_FILE:="/etc/registry/config.yml"}
-if [ ! -f ${REGISTRY_CONFIG_FILE} ]; then
-    echo "ERROR: REGISTRY_CONFIG_FILE ${REGISTRY_CONFIG_FILE} doesn't exist"
+# Verify config.yml
+: ${CONFIG_FILE:="/etc/registry/config.yml"}
+if [ ! -f ${CONFIG_FILE} ]; then
+    echo "ERROR: CONFIG_FILE ${CONFIG_FILE} doesn't exist"
     exit 1
 fi
 
-# Verify registry storage dir
-: ${REGISTRY_STORAGE_DIR:=$(grep -A 2 'filesystem:' ${REGISTRY_CONFIG_FILE} | grep 'rootdirectory' | awk '{print $2}')}
-REGISTRY_V2_BASE_DIR=${REGISTRY_STORAGE_DIR}/docker/registry/v2
-if [ ! -d ${REGISTRY_V2_BASE_DIR} ]; then
-    echo "ERROR: REGISTRY_V2_BASE_DIR ${REGISTRY_V2_BASE_DIR} doesn't exist"
+# Verify storage dir
+: ${STORAGE_DIR:=$(grep -A 2 'filesystem:' ${CONFIG_FILE} | grep 'rootdirectory' | awk '{print $2}')}
+V2_BASE_DIR=${STORAGE_DIR}/docker/registry/v2
+if [ ! -d ${V2_BASE_DIR} ]; then
+    echo "ERROR: V2_BASE_DIR ${V2_BASE_DIR} doesn't exist"
     exit 1
 fi
 
-echo -e "\nStarting clean registry storage directory ${REGISTRY_STORAGE_DIR}"
-cd ${REGISTRY_V2_BASE_DIR}
+echo -e "\nStarting clean registry storage directory ${STORAGE_DIR}"
+cd ${V2_BASE_DIR}
 
 # Clean manifests without tags
 find ./repositories -type f -name 'link' > /tmp/repo_links
@@ -35,7 +35,7 @@ find ./repositories -mindepth 6 -type d -empty | grep '/_manifests/revisions/sha
 
 # Clean outdated blobs
 echo ""
-/bin/registry garbage-collect $REGISTRY_CONFIG_FILE | grep 'eligible for deletion' | awk -F 'marked, ' '{print $(NF)}'
+/bin/registry garbage-collect $CONFIG_FILE | grep 'eligible for deletion' | awk -F 'marked, ' '{print $(NF)}'
 find ./blobs/sha256 -mindepth 1 -type d -empty | xargs -r rmdir
 
 # Clean outdated indexes
@@ -71,4 +71,4 @@ find ./repositories -mindepth 5 -type d -empty | grep '/_layers/sha256/' | xargs
 
 # Delete find results cache file
 rm -f /tmp/repo_links
-echo -e "\nFinished clean registry storage directory ${REGISTRY_STORAGE_DIR}\n"
+echo -e "\nFinished clean registry storage directory ${STORAGE_DIR}\n"
