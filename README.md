@@ -8,7 +8,9 @@ You can't enable registry cache. Because we clean up image layers from filesyste
 
 ### Usage
 
-Run `docker run -it --rm --volumes-from registry cleanup`
+Run `docker run -it --rm --volumes-from registry -e CONFIG_FILE=/path/to/config.yml tangjiujun/registry-cleanup:v1.0`
+
+If you use Harbor, Just run `docker run -it --rm --volumes-from registry tangjiujun/registry-cleanup:v1.0`
 
 ### Configuration：
 
